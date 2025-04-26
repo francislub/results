@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  email          String    @unique
+  password       String
+  role           Role      @default(STUDENT)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  student        Student?
+  teacher        Teacher?
+  administrator  Admin?
+}
+
+model Student {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String    @unique @db.ObjectId
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  registrationNo  String    @unique
+  dateOfBirth     DateTime?
+  gender          String?
+  address         String?
+  parentName      String?
+  parentContact   String?
+  classId         String?   @db.ObjectId
+  class           Class?    @relation(fields: [classId], references: [id])
+  marks           Mark[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Teacher {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String    @unique @db.ObjectId
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  staffId         String    @unique
+  qualification   String?
+  dateOfBirth     DateTime?
+  gender          String?
+  address         String?
+  contact         String?
+  subjects        SubjectTeacher[]
+  classTeacher    Class[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Admin {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String    @unique @db.ObjectId
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  staffId         String    @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Class {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  name            String    @unique
+  level           Int
+  academicYear    String
+  term            String
+  teacherId       String?   @db.ObjectId
+  teacher         Teacher?  @relation(fields: [teacherId], references: [id])
+  students        Student[]
+  subjects        ClassSubject[]
+  exams           Exam[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Subject {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  name            String    @unique
+  code            String    @unique
+  description     String?
+  classes         ClassSubject[]
+  teachers        SubjectTeacher[]
+  marks           Mark[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model ClassSubject {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  classId         String    @db.ObjectId
+  class           Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectId       String    @db.ObjectId
+  subject         Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([classId, subjectId])
+}
+
+model SubjectTeacher {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  subjectId       String    @db.ObjectId
+  subject         Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacherId       String    @db.ObjectId
+  teacher         Teacher   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([subjectId, teacherId])
+}
+
+model Exam {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  term            String
+  academicYear    String
+  startDate       DateTime
+  endDate         DateTime
+  classId         String    @db.ObjectId
+  class           Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  marks           Mark[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([name, term, academicYear, classId])
+}
+
+model Mark {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  score           Float
+  grade           String?
+  comment         String?
+  studentId       String    @db.ObjectId
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectId       String    @db.ObjectId
+  subject         Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  examId          String    @db.ObjectId
+  exam            Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([studentId, subjectId, examId])
+}
+
+model GradingSystem {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  grade           String
+  minScore        Float
+  maxScore        Float
+  description     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([grade])
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
