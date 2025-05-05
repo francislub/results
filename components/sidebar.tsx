@@ -137,7 +137,7 @@ export function Sidebar({ className }: SidebarProps) {
   }
 
   return (
-    <div className={cn("pb-12 h-screen", className)}>
+    <div className={cn("pb-12 h-screen bg-card border-r border-border", className)}>
       <div className="space-y-4 py-4">
         <div className="px-4 py-2">
           <div className="flex items-center justify-center mb-6">
