@@ -11,8 +11,15 @@ export const metadata: Metadata = {
 
 async function getTeacher(id: string) {
   try {
-    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/teachers/${id}`, {
+    // Use absolute URL with origin from environment variable
+    const origin =
+      process.env.NEXTAUTH_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+    const res = await fetch(`${origin}/api/teachers/${id}`, {
       cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+      },
     })
 
     if (!res.ok) {
@@ -31,8 +38,15 @@ async function getTeacher(id: string) {
 
 async function getSubjects() {
   try {
-    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/subjects`, {
+    // Use absolute URL with origin from environment variable
+    const origin =
+      process.env.NEXTAUTH_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://results-rosy.vercel.app")
+    const res = await fetch(`${origin}/api/subjects`, {
       cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+      },
     })
 
     if (!res.ok) {
@@ -57,7 +71,9 @@ export default async function EditTeacherPage({ params }: { params: { id: string
     redirect("/dashboard")
   }
 
-  const [teacher, subjects] = await Promise.all([getTeacher(params.id), getSubjects()])
+  // Extract ID at the beginning to avoid params warning
+  const teacherId = params.id
+  const [teacher, subjects] = await Promise.all([getTeacher(teacherId), getSubjects()])
 
   if (!teacher) {
     notFound()

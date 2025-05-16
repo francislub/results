@@ -19,8 +19,15 @@ export const metadata: Metadata = {
 
 async function getTeacher(id: string) {
   try {
-    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/teachers/${id}`, {
+    // Use absolute URL with origin from environment variable
+    const origin =
+      process.env.NEXTAUTH_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://results-rosy.vercel.app")
+    const res = await fetch(`${origin}/api/teachers/${id}`, {
       cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+      },
     })
 
     if (!res.ok) {
@@ -44,7 +51,9 @@ export default async function TeacherPage({ params }: { params: { id: string } }
     return null
   }
 
-  const teacher = await getTeacher(params.id)
+  // Extract ID at the beginning to avoid params warning
+  const teacherId = params.id
+  const teacher = await getTeacher(teacherId)
 
   if (!teacher) {
     notFound()
@@ -67,12 +76,12 @@ export default async function TeacherPage({ params }: { params: { id: string } }
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="outline">
-            <Link href={`/teachers/${params.id}/edit`}>
+            <Link href={`/teachers/${teacherId}/edit`}>
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </Link>
           </Button>
-          {session.user.role === "ADMIN" && <DeleteTeacherButton id={params.id} />}
+          {session.user.role === "ADMIN" && <DeleteTeacherButton id={teacherId} />}
         </div>
       </div>
 

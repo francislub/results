@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,15 +11,22 @@ import { formatDate } from "@/lib/utils"
 import Link from "next/link"
 import { ArrowLeft, Plus, FileDown } from "lucide-react"
 
-export default async function ExamMarksPage({ params }: { params: { id: string } }) {
+export default async function ExamMarksPage({
+  params,
+}: {
+  params: { id: string }
+}) {
   const session = await getServerSession(authOptions)
   if (!session) {
     redirect("/login")
   }
 
+  // Extract the ID to avoid using params.id directly
+  const examId = params.id
+
   const exam = await prisma.exam.findUnique({
     where: {
-      id: params.id,
+      id: examId,
     },
     include: {
       class: true,
@@ -108,7 +115,7 @@ export default async function ExamMarksPage({ params }: { params: { id: string }
           <div className="flex flex-col space-y-2">
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="icon" asChild>
-                <Link href={`/exams/${params.id}`}>
+                <Link href={`/exams/${examId}`}>
                   <ArrowLeft className="h-4 w-4" />
                 </Link>
               </Button>
@@ -121,7 +128,7 @@ export default async function ExamMarksPage({ params }: { params: { id: string }
           <div className="flex space-x-2">
             {session.user.role === "ADMIN" || session.user.role === "TEACHER" ? (
               <Button asChild>
-                <Link href={`/marks/new?examId=${params.id}`}>
+                <Link href={`/marks/new?examId=${examId}`}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Marks
                 </Link>
