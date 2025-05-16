@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { School, Users, BookOpen, GraduationCap } from "lucide-react"
+import { School, Users, BookOpen, GraduationCap, Edit } from "lucide-react"
 import Link from "next/link"
 
 interface ClassCardProps {
@@ -40,9 +40,17 @@ export function ClassCard({ classItem }: ClassCardProps) {
           <Button variant="outline" size="sm" asChild>
             <Link href={`/classes/${classItem.id}`}>View Details</Link>
           </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/classes/${classItem.id}/students`}>Students</Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/classes/${classItem.id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/classes/${classItem.id}/students`}>Students</Link>
+            </Button>
+          </div>
         </div>
       </CardFooter>
     </Card>

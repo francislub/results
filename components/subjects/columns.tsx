@@ -76,9 +76,33 @@ export const columns: ColumnDef<Subject>[] = [
                 Edit
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
-              <Trash className="mr-2 h-4 w-4" />
-              Delete
+            <DropdownMenuItem className="text-destructive" asChild>
+              <Link
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (window.confirm(`Are you sure you want to delete ${subject.name}?`)) {
+                    fetch(`/api/subjects/${subject.id}`, {
+                      method: "DELETE",
+                    })
+                      .then((response) => {
+                        if (response.ok) {
+                          window.location.reload()
+                        } else {
+                          response.json().then((data) => {
+                            alert(data.error || "Failed to delete subject")
+                          })
+                        }
+                      })
+                      .catch((error) => {
+                        alert("An unexpected error occurred")
+                      })
+                  }
+                }}
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Delete
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

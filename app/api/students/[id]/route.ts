@@ -11,32 +11,13 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const id = params.id
-
-    // Admin can view any student
-    // Teachers can view students in their classes
-    // Students can only view themselves
-    if (session.user.role === "STUDENT" && session.user.studentId !== id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const student = await prisma.student.findUnique({
+    const subject = await prisma.subject.findUnique({
       where: {
-        id,
+        id: params.id,
       },
       include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-        class: {
-          select: {
-            name: true,
-            level: true,
-            academicYear: true,
-            term: true,
+        teachers: {
+          include: {
             teacher: {
               include: {
                 user: {
@@ -48,22 +29,26 @@ export async function GET(request: Request, { params }: { params: { id: string }
             },
           },
         },
-        marks: {
+        classes: {
           include: {
-            subject: true,
-            exam: true,
+            class: true,
+          },
+        },
+        _count: {
+          select: {
+            marks: true,
           },
         },
       },
     })
 
-    if (!student) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 })
+    if (!subject) {
+      return NextResponse.json({ error: "Subject not found" }, { status: 404 })
     }
 
-    return NextResponse.json(student)
+    return NextResponse.json(subject)
   } catch (error) {
-    console.error("Error fetching student:", error)
+    console.error("Error fetching subject:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }
@@ -76,58 +61,61 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const id = params.id
     const body = await request.json()
-    const { name, email, registrationNo, gender, dateOfBirth, parentName, parentContact, classId } = body
+    const { name, code, description } = body
 
-    // Check if student exists
-    const student = await prisma.student.findUnique({
+    // Check if subject exists
+    const existingSubject = await prisma.subject.findUnique({
       where: {
-        id,
-      },
-      include: {
-        user: true,
+        id: params.id,
       },
     })
 
-    if (!student) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 })
+    if (!existingSubject) {
+      return NextResponse.json({ error: "Subject not found" }, { status: 404 })
     }
 
-    // Update user and student in a transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Update user
-      const user = await tx.user.update({
+    // Check if the new code is already taken by another subject
+    if (code !== existingSubject.code) {
+      const codeExists = await prisma.subject.findUnique({
         where: {
-          id: student.userId,
+          code,
         },
-        data: {
+      })
+
+      if (codeExists) {
+        return NextResponse.json({ error: "Subject code already exists" }, { status: 400 })
+      }
+    }
+
+    // Check if the new name is already taken by another subject
+    if (name !== existingSubject.name) {
+      const nameExists = await prisma.subject.findUnique({
+        where: {
           name,
-          email,
         },
       })
 
-      // Update student
-      const updatedStudent = await tx.student.update({
-        where: {
-          id,
-        },
-        data: {
-          registrationNo,
-          gender,
-          dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-          parentName,
-          parentContact,
-          classId,
-        },
-      })
+      if (nameExists) {
+        return NextResponse.json({ error: "Subject name already exists" }, { status: 400 })
+      }
+    }
 
-      return { user, student: updatedStudent }
+    // Update subject
+    const updatedSubject = await prisma.subject.update({
+      where: {
+        id: params.id,
+      },
+      data: {
+        name,
+        code,
+        description,
+      },
     })
 
-    return NextResponse.json(result)
+    return NextResponse.json(updatedSubject)
   } catch (error) {
-    console.error("Error updating student:", error)
+    console.error("Error updating subject:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }
@@ -140,39 +128,55 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const id = params.id
-
-    // Check if student exists
-    const student = await prisma.student.findUnique({
+    // Check if subject exists
+    const existingSubject = await prisma.subject.findUnique({
       where: {
-        id,
+        id: params.id,
+      },
+      include: {
+        marks: true,
       },
     })
 
-    if (!student) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 })
+    if (!existingSubject) {
+      return NextResponse.json({ error: "Subject not found" }, { status: 404 })
     }
 
-    // Delete student and user in a transaction
+    // Check if subject has marks
+    if (existingSubject.marks.length > 0) {
+      return NextResponse.json(
+        { error: "Cannot delete subject with marks. Please delete marks first." },
+        { status: 400 },
+      )
+    }
+
+    // Delete subject and related data in a transaction
     await prisma.$transaction(async (tx) => {
-      // Delete student
-      await tx.student.delete({
+      // Delete teacher associations
+      await tx.subjectTeacher.deleteMany({
         where: {
-          id,
+          subjectId: params.id,
         },
       })
 
-      // Delete user
-      await tx.user.delete({
+      // Delete class associations
+      await tx.classSubject.deleteMany({
         where: {
-          id: student.userId,
+          subjectId: params.id,
+        },
+      })
+
+      // Delete the subject
+      await tx.subject.delete({
+        where: {
+          id: params.id,
         },
       })
     })
 
-    return NextResponse.json({ message: "Student deleted successfully" })
+    return NextResponse.json({ message: "Subject deleted successfully" })
   } catch (error) {
-    console.error("Error deleting student:", error)
+    console.error("Error deleting subject:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }
