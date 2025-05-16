@@ -23,14 +23,15 @@ export function AdminStats({ data }: AdminStatsProps) {
     { name: "Poor (F)", value: 10 },
   ]
 
-  const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"]
+  // Admin-specific colors - blue and purple theme
+  const COLORS = ["#4f46e5", "#7c3aed", "#2563eb", "#8b5cf6", "#3b82f6", "#a855f7"]
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <Card>
+      <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
         <CardHeader>
-          <CardTitle>Student Distribution</CardTitle>
-          <CardDescription>Distribution of students by gender</CardDescription>
+          <CardTitle className="text-indigo-900">Student Distribution</CardTitle>
+          <CardDescription className="text-indigo-700">Distribution of students by gender</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
@@ -58,10 +59,10 @@ export function AdminStats({ data }: AdminStatsProps) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
         <CardHeader>
-          <CardTitle>Performance Distribution</CardTitle>
-          <CardDescription>Distribution of grades across all students</CardDescription>
+          <CardTitle className="text-indigo-900">Performance Distribution</CardTitle>
+          <CardDescription className="text-indigo-700">Distribution of grades across all students</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
@@ -89,20 +90,20 @@ export function AdminStats({ data }: AdminStatsProps) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
         <CardHeader>
-          <CardTitle>Recent Registrations</CardTitle>
-          <CardDescription>Recently registered students</CardDescription>
+          <CardTitle className="text-indigo-900">Recent Registrations</CardTitle>
+          <CardDescription className="text-indigo-700">Recently registered students</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {data.recentStudents?.map((student) => (
-              <div key={student.id} className="flex items-center justify-between">
+              <div key={student.id} className="flex items-center justify-between p-3 rounded-lg bg-white shadow-sm">
                 <div>
-                  <p className="text-sm font-medium">{student.user.name}</p>
-                  <p className="text-xs text-muted-foreground">{student.registrationNo}</p>
+                  <p className="text-sm font-medium text-indigo-900">{student.user.name}</p>
+                  <p className="text-xs text-indigo-600">{student.registrationNo}</p>
                 </div>
-                <div className="text-sm">{student.class?.name || "No Class"}</div>
+                <div className="text-sm text-indigo-800 font-medium">{student.class?.name || "No Class"}</div>
               </div>
             ))}
           </div>

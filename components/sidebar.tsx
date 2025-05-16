@@ -129,19 +129,28 @@ export function Sidebar({ className }: SidebarProps) {
   ]
 
   let routes = studentRoutes
+  let sidebarBgClass = "bg-gradient-to-b from-emerald-50 to-teal-100"
+  let activeButtonClass = "bg-emerald-600 text-white hover:bg-emerald-700"
+  let logoColor = "text-emerald-600"
 
   if (role === "ADMIN") {
     routes = adminRoutes
+    sidebarBgClass = "bg-gradient-to-b from-indigo-50 to-purple-100"
+    activeButtonClass = "bg-indigo-600 text-white hover:bg-indigo-700"
+    logoColor = "text-indigo-600"
   } else if (role === "TEACHER") {
     routes = teacherRoutes
+    sidebarBgClass = "bg-gradient-to-b from-amber-50 to-orange-100"
+    activeButtonClass = "bg-amber-600 text-white hover:bg-amber-700"
+    logoColor = "text-amber-600"
   }
 
   return (
-    <div className={cn("pb-12 h-screen bg-card border-r border-border", className)}>
+    <div className={cn(`pb-12 h-screen border-r border-border ${sidebarBgClass}`, className)}>
       <div className="space-y-4 py-4">
         <div className="px-4 py-2">
           <div className="flex items-center justify-center mb-6">
-            <School className="h-8 w-8 text-primary" />
+            <School className={`h-8 w-8 ${logoColor}`} />
             <h2 className="ml-2 text-lg font-semibold tracking-tight">Vurra Secondary</h2>
           </div>
           <div className="space-y-1">
@@ -149,7 +158,10 @@ export function Sidebar({ className }: SidebarProps) {
               <Button
                 key={route.href}
                 variant={pathname === route.href ? "default" : "ghost"}
-                className={cn("w-full justify-start", pathname === route.href ? "bg-primary" : "")}
+                className={cn(
+                  "w-full justify-start",
+                  pathname === route.href ? activeButtonClass : "hover:bg-white/50",
+                )}
                 asChild
               >
                 <Link href={route.href}>
