@@ -16,7 +16,11 @@ export const metadata: Metadata = {
 export default async function ClassesPage() {
   const session = await getServerSession(authOptions)
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session) {
+    redirect("/login")
+  }
+
+  if (session.user.role !== "ADMIN") {
     redirect("/dashboard")
   }
 
@@ -43,6 +47,9 @@ export default async function ClassesPage() {
     },
   })
 
+  // Ensure classes is always an array
+  const classesData = classes || []
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -55,9 +62,13 @@ export default async function ClassesPage() {
         </Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {classes.map((classItem) => (
-          <ClassCard key={classItem.id} classItem={classItem} />
-        ))}
+        {classesData.length > 0 ? (
+          classesData.map((classItem) => <ClassCard key={classItem.id} classItem={classItem} />)
+        ) : (
+          <div className="col-span-full text-center py-10">
+            <p className="text-muted-foreground">No classes found. Create your first class to get started.</p>
+          </div>
+        )}
       </div>
     </div>
   )

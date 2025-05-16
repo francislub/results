@@ -47,6 +47,12 @@ export function ClassForm({ teachers, subjects, classItem }: ClassFormProps) {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setSubmitting(true)
+
+    // Convert "none" to null for teacherId
+    if (values.teacherId === "none") {
+      values.teacherId = null
+    }
+
     try {
       const url = classItem ? `/api/classes/${classItem.id}` : "/api/classes"
       const method = classItem ? "PUT" : "POST"
@@ -186,7 +192,7 @@ export function ClassForm({ teachers, subjects, classItem }: ClassFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {teachers.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
                         {teacher.user.name} ({teacher.staffId})

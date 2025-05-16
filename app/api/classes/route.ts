@@ -146,6 +146,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Class name already exists" }, { status: 400 })
     }
 
+    // Convert "none" string to null for teacherId
+    const finalTeacherId = teacherId === "none" ? null : teacherId
+
     // Create class and assign subjects in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create class
@@ -155,7 +158,7 @@ export async function POST(request: Request) {
           level,
           academicYear,
           term,
-          teacherId,
+          teacherId: finalTeacherId,
         },
       })
 
