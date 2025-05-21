@@ -98,7 +98,7 @@ export default function VerifyPage() {
               </div>
               <div className="text-sm text-muted-foreground text-center">
                 <p>
-                  Use code <span className="font-semibold">12345</span> for demo purposes
+                  Use code: <span className="font-semibold">The code is only known by the admin</span>
                 </p>
               </div>
             </CardContent>
