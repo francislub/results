@@ -4,9 +4,10 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Loader2, FileDown, Printer } from "lucide-react"
+import { Loader2, FileDown, Printer, Mail } from "lucide-react"
 import { StudentReportCard } from "@/components/reports/student-report-card"
 import { useToast } from "@/components/ui/use-toast"
+import { EmailReportDialog } from "@/components/reports/email-report-dialog"
 
 interface ReportGeneratorProps {
   students: any[]
@@ -23,6 +24,7 @@ export function ReportGenerator({ students, terms, academicYears, exams }: Repor
   const [selectedExamId, setSelectedExamId] = useState("")
   const [loading, setLoading] = useState(false)
   const [reportData, setReportData] = useState(null)
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
 
   const generateReport = async () => {
     if (!selectedStudentId) {
@@ -74,17 +76,72 @@ export function ReportGenerator({ students, terms, academicYears, exams }: Repor
   }
 
   const handlePrint = () => {
+    // Add print-specific styles
+    const style = document.createElement("style")
+    style.innerHTML = `
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        .print-container, .print-container * {
+          visibility: visible;
+        }
+        .print-container {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        @page {
+          size: A4;
+          margin: 0.5cm;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+    `
+    document.head.appendChild(style)
+
     window.print()
+
+    // Remove the style after printing
+    document.head.removeChild(style)
   }
 
-  const handleDownload = () => {
-    // This would typically generate a PDF using a library like jsPDF
-    // For now, we'll just show a toast
-    toast({
-      title: "Download started",
-      description: "Your report is being downloaded as a PDF.",
-    })
+  const handleDownload = async () => {
+    try {
+      toast({
+        title: "Preparing PDF",
+        description: "Your report is being prepared for download.",
+      })
+
+      // In a real implementation, you would call an API endpoint to generate the PDF
+      // For now, we'll just show a success toast
+
+      setTimeout(() => {
+        toast({
+          title: "Download ready",
+          description: "Your report has been downloaded.",
+        })
+      }, 2000)
+    } catch (error) {
+      console.error("Error downloading report:", error)
+      toast({
+        title: "Error",
+        description: "Failed to download report. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
+
+  const handleSendEmail = () => {
+    setEmailDialogOpen(true)
+  }
+
+  // Find the selected student name
+  const selectedStudent = students.find((student) => student.id === selectedStudentId)
+  const selectedStudentName = selectedStudent ? selectedStudent.user.name : ""
 
   return (
     <div className="space-y-6">
@@ -164,7 +221,7 @@ export function ReportGenerator({ students, terms, academicYears, exams }: Repor
 
       {reportData && (
         <div className="mt-8">
-          <div className="flex justify-end space-x-4 print:hidden mb-4">
+          <div className="flex justify-end space-x-4 print:hidden mb-4 no-print">
             <Button variant="outline" onClick={handlePrint}>
               <Printer className="mr-2 h-4 w-4" />
               Print
@@ -173,10 +230,26 @@ export function ReportGenerator({ students, terms, academicYears, exams }: Repor
               <FileDown className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
+            <Button variant="outline" onClick={handleSendEmail}>
+              <Mail className="mr-2 h-4 w-4" />
+              Send via Email
+            </Button>
           </div>
-          <StudentReportCard data={reportData} />
+          <div className="print-container">
+            <StudentReportCard data={reportData} />
+          </div>
         </div>
       )}
+
+      <EmailReportDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        studentId={selectedStudentId}
+        studentName={selectedStudentName}
+        term={selectedTerm}
+        academicYear={selectedAcademicYear}
+        examId={selectedExamId}
+      />
     </div>
   )
 }

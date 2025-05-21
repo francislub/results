@@ -66,7 +66,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center text-center">
           <div className="relative w-24 h-24 mb-4">
             <Image
-              src="/placeholder.svg?height=96&width=96"
+              src="/logo.png?height=96&width=96"
               alt="Vurra Secondary School Logo"
               fill
               className="rounded-full"

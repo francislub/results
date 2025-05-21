@@ -11,7 +11,6 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Vurra Secondary School - Result Information System",
   description: "Web-based Result Information System for Vurra Secondary School, Arua City",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({

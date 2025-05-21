@@ -49,7 +49,7 @@ export default function HomePage() {
           <div className="flex-1 flex justify-center">
             <div className="relative w-full max-w-md aspect-square">
               <Image
-                src="/placeholder.svg?height=400&width=400"
+                src="/logo.png?height=400&width=400"
                 alt="Students"
                 fill
                 className="object-cover rounded-lg shadow-lg"
