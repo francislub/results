@@ -11,7 +11,55 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
   const student = reportData.student
   const term = reportData.term || "Term 1"
   const academicYear = reportData.academicYear || "2023/2024"
-  const subjects = reportData.subjects || []
+
+  // Get all subjects from the class and any existing marks
+  const classSubjects = reportData.classSubjects || []
+  const examGroups = reportData.examGroups || []
+
+  // Combine all subjects from all exams for display
+  const allExamSubjects = examGroups.flatMap((group: any) =>
+    group.subjects.map((subject: any) => ({
+      ...subject,
+      examName: group.exam.name,
+      examTerm: group.exam.term,
+      examDate: group.exam.date,
+    })),
+  )
+
+  // Create a map of subject IDs to their latest scores
+  const subjectScoresMap = new Map()
+  allExamSubjects.forEach((subject: any) => {
+    // Only update if this is a newer score or we don't have one yet
+    if (
+      !subjectScoresMap.has(subject.subject.id) ||
+      new Date(subject.examDate) > new Date(subjectScoresMap.get(subject.subject.id).examDate)
+    ) {
+      subjectScoresMap.set(subject.subject.id, subject)
+    }
+  })
+
+  // Prepare the final subjects list, including all class subjects
+  const subjects = classSubjects.map((classSubject: any) => {
+    const subjectWithScore = subjectScoresMap.get(classSubject.id)
+    return subjectWithScore
+      ? {
+          subject: classSubject,
+          name: classSubject.name,
+          score: subjectWithScore.score,
+          grade: subjectWithScore.grade,
+          remarks: subjectWithScore.comment || subjectWithScore.remarks,
+          examName: subjectWithScore.examName,
+        }
+      : {
+          subject: classSubject,
+          name: classSubject.name,
+          score: null,
+          grade: null,
+          remarks: null,
+          examName: null,
+        }
+  })
+
   const attendance = reportData.attendance || { present: 85, absent: 5, late: 10, total: 100 }
   const comments = reportData.comments || {
     classTeacher: "A hardworking student who shows great potential.",
@@ -197,6 +245,7 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
                   <th style={{ padding: "12px 15px", textAlign: "center", fontWeight: "600" }}>Score (%)</th>
                   <th style={{ padding: "12px 15px", textAlign: "center", fontWeight: "600" }}>Grade</th>
                   <th style={{ padding: "12px 15px", textAlign: "left", fontWeight: "600" }}>Remarks</th>
+                  <th style={{ padding: "12px 15px", textAlign: "left", fontWeight: "600" }}>Exam</th>
                 </tr>
               </thead>
               <tbody>
@@ -210,36 +259,67 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
                       }}
                     >
                       <td style={{ padding: "12px 15px", fontWeight: "500" }}>
-                        {subject.subject?.name || subject.name || "N/A"}
+                        {subject.name || subject.subject?.name || "N/A"}
                       </td>
                       <td style={{ padding: "12px 15px", textAlign: "center" }}>
-                        {subject.score || subject.marks || 0}
+                        {subject.score !== null ? subject.score : "Not graded"}
                       </td>
                       <td style={{ padding: "12px 15px", textAlign: "center" }}>
-                        <span
-                          style={{
-                            display: "inline-block",
-                            padding: "3px 10px",
-                            borderRadius: "3px",
-                            fontWeight: "bold",
-                            backgroundColor: getGradeColor(subject.grade),
-                            color: "white",
-                          }}
-                        >
-                          {subject.grade || "N/A"}
-                        </span>
+                        {subject.grade ? (
+                          <span
+                            style={{
+                              display: "inline-block",
+                              padding: "3px 10px",
+                              borderRadius: "3px",
+                              fontWeight: "bold",
+                              backgroundColor: getGradeColor(subject.grade),
+                              color: "white",
+                            }}
+                          >
+                            {subject.grade}
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              display: "inline-block",
+                              padding: "3px 10px",
+                              borderRadius: "3px",
+                              backgroundColor: "#e0e0e0",
+                              color: "#666",
+                            }}
+                          >
+                            N/A
+                          </span>
+                        )}
                       </td>
-                      <td style={{ padding: "12px 15px" }}>{subject.remarks || "No remarks provided"}</td>
+                      <td style={{ padding: "12px 15px" }}>
+                        {subject.remarks || (subject.score ? "No remarks provided" : "Not assessed yet")}
+                      </td>
+                      <td style={{ padding: "12px 15px", fontSize: "13px", color: "#666" }}>
+                        {subject.examName || "No exam data"}
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} style={{ padding: "20px", textAlign: "center", color: "#666" }}>
+                    <td colSpan={5} style={{ padding: "20px", textAlign: "center", color: "#666" }}>
                       No subject data available for this report.
                     </td>
                   </tr>
                 )}
               </tbody>
+              <tfoot>
+                <tr style={{ backgroundColor: "#f1f3f5" }}>
+                  <td
+                    colSpan={5}
+                    style={{ padding: "10px 15px", fontSize: "12px", color: "#666", textAlign: "center" }}
+                  >
+                    {classSubjects.length > 0
+                      ? `Showing all ${classSubjects.length} subjects in ${student?.class?.name || "class"}`
+                      : "No subjects found for this class"}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>
