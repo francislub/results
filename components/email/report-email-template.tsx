@@ -7,6 +7,7 @@ interface ReportEmailTemplateProps {
 }
 
 export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ reportData, senderName, message }) => {
+  // Ensure we're using actual data from the database with fallbacks only when necessary
   const student = reportData.student
   const term = reportData.term || "Term 1"
   const academicYear = reportData.academicYear || "2023/2024"
@@ -18,7 +19,8 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
   }
 
   // Calculate attendance percentage
-  const attendancePercentage = ((attendance.present / attendance.total) * 100).toFixed(1)
+  const attendancePercentage =
+    attendance.present && attendance.total ? ((attendance.present / attendance.total) * 100).toFixed(1) : "0.0"
 
   // Get grade colors based on performance
   const getGradeColor = (grade: string) => {
@@ -30,7 +32,7 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
       E: "#FF5722",
       F: "#F44336",
     }
-    return gradeColors[grade.charAt(0)] || "#333333"
+    return grade ? gradeColors[grade.charAt(0)] || "#333333" : "#333333"
   }
 
   return (
@@ -102,9 +104,9 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
             <p style={{ fontSize: "16px", lineHeight: "1.5" }}>{message}</p>
           ) : (
             <p style={{ fontSize: "16px", lineHeight: "1.5" }}>
-              Please find below the academic report card for {student.user.name} for {term} of the {academicYear}{" "}
-              academic year. This report provides a comprehensive overview of your child's academic performance and
-              progress.
+              Please find below the academic report card for {student?.user?.name || "the student"} for {term} of the{" "}
+              {academicYear} academic year. This report provides a comprehensive overview of your child's academic
+              performance and progress.
             </p>
           )}
         </div>
@@ -136,15 +138,15 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
             <div style={{ flex: "1", minWidth: "250px", marginBottom: "15px" }}>
               <p style={{ margin: "0 0 8px", fontSize: "14px" }}>
                 <strong style={{ display: "inline-block", width: "120px", color: "#555" }}>Student Name:</strong>
-                <span style={{ fontWeight: "500" }}>{student.user.name}</span>
+                <span style={{ fontWeight: "500" }}>{student?.user?.name || "N/A"}</span>
               </p>
               <p style={{ margin: "0 0 8px", fontSize: "14px" }}>
                 <strong style={{ display: "inline-block", width: "120px", color: "#555" }}>Student ID:</strong>
-                <span>{student.id || "N/A"}</span>
+                <span>{student?.id || "N/A"}</span>
               </p>
               <p style={{ margin: "0 0 8px", fontSize: "14px" }}>
                 <strong style={{ display: "inline-block", width: "120px", color: "#555" }}>Class:</strong>
-                <span>{student.class?.name || "Not Assigned"}</span>
+                <span>{student?.class?.name || "Not Assigned"}</span>
               </p>
             </div>
 
@@ -159,7 +161,7 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
               </p>
               <p style={{ margin: "0 0 8px", fontSize: "14px" }}>
                 <strong style={{ display: "inline-block", width: "120px", color: "#555" }}>Class Teacher:</strong>
-                <span>{reportData.classTeacher || "Mr. John Doe"}</span>
+                <span>{reportData.classTeacher || student?.class?.teacher?.user?.name || "N/A"}</span>
               </p>
             </div>
           </div>
@@ -198,68 +200,45 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
                 </tr>
               </thead>
               <tbody>
-                {subjects.length > 0
-                  ? subjects.map((subject: any, index: number) => (
-                      <tr
-                        key={index}
-                        style={{
-                          backgroundColor: index % 2 === 0 ? "#f8f9fa" : "white",
-                          borderBottom: "1px solid #e9ecef",
-                        }}
-                      >
-                        <td style={{ padding: "12px 15px", fontWeight: "500" }}>{subject.name}</td>
-                        <td style={{ padding: "12px 15px", textAlign: "center" }}>{subject.score}</td>
-                        <td style={{ padding: "12px 15px", textAlign: "center" }}>
-                          <span
-                            style={{
-                              display: "inline-block",
-                              padding: "3px 10px",
-                              borderRadius: "3px",
-                              fontWeight: "bold",
-                              backgroundColor: getGradeColor(subject.grade),
-                              color: "white",
-                            }}
-                          >
-                            {subject.grade}
-                          </span>
-                        </td>
-                        <td style={{ padding: "12px 15px" }}>{subject.remarks || "Good effort"}</td>
-                      </tr>
-                    ))
-                  : // Sample data if no subjects are provided
-                    [
-                      { name: "Mathematics", score: 85, grade: "A", remarks: "Excellent work" },
-                      { name: "English", score: 78, grade: "B", remarks: "Good performance" },
-                      { name: "Science", score: 92, grade: "A", remarks: "Outstanding" },
-                      { name: "Social Studies", score: 75, grade: "B", remarks: "Satisfactory" },
-                      { name: "Computer Studies", score: 88, grade: "A", remarks: "Very good" },
-                    ].map((subject, index) => (
-                      <tr
-                        key={index}
-                        style={{
-                          backgroundColor: index % 2 === 0 ? "#f8f9fa" : "white",
-                          borderBottom: "1px solid #e9ecef",
-                        }}
-                      >
-                        <td style={{ padding: "12px 15px", fontWeight: "500" }}>{subject.name}</td>
-                        <td style={{ padding: "12px 15px", textAlign: "center" }}>{subject.score}</td>
-                        <td style={{ padding: "12px 15px", textAlign: "center" }}>
-                          <span
-                            style={{
-                              display: "inline-block",
-                              padding: "3px 10px",
-                              borderRadius: "3px",
-                              fontWeight: "bold",
-                              backgroundColor: getGradeColor(subject.grade),
-                              color: "white",
-                            }}
-                          >
-                            {subject.grade}
-                          </span>
-                        </td>
-                        <td style={{ padding: "12px 15px" }}>{subject.remarks}</td>
-                      </tr>
-                    ))}
+                {subjects && subjects.length > 0 ? (
+                  subjects.map((subject: any, index: number) => (
+                    <tr
+                      key={index}
+                      style={{
+                        backgroundColor: index % 2 === 0 ? "#f8f9fa" : "white",
+                        borderBottom: "1px solid #e9ecef",
+                      }}
+                    >
+                      <td style={{ padding: "12px 15px", fontWeight: "500" }}>
+                        {subject.subject?.name || subject.name || "N/A"}
+                      </td>
+                      <td style={{ padding: "12px 15px", textAlign: "center" }}>
+                        {subject.score || subject.marks || 0}
+                      </td>
+                      <td style={{ padding: "12px 15px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "3px 10px",
+                            borderRadius: "3px",
+                            fontWeight: "bold",
+                            backgroundColor: getGradeColor(subject.grade),
+                            color: "white",
+                          }}
+                        >
+                          {subject.grade || "N/A"}
+                        </span>
+                      </td>
+                      <td style={{ padding: "12px 15px" }}>{subject.remarks || "No remarks provided"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} style={{ padding: "20px", textAlign: "center", color: "#666" }}>
+                      No subject data available for this report.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -294,7 +273,7 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
                 marginBottom: "5px",
               }}
             >
-              {reportData.overallAverage.toFixed(1)}%
+              {reportData.overallAverage ? reportData.overallAverage.toFixed(1) : "0.0"}%
             </div>
             <p style={{ margin: "0", fontSize: "14px", color: "#388e3c" }}>
               {reportData.overallAverage >= 80
@@ -329,14 +308,14 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
                 marginBottom: "5px",
               }}
             >
-              {reportData.position || "3"}/{reportData.totalStudents || "45"}
+              {reportData.position || "-"}/{reportData.totalStudents || "-"}
             </div>
             <p style={{ margin: "0", fontSize: "14px", color: "#1976d2" }}>
               {reportData.positionChange
                 ? reportData.positionChange > 0
                   ? `Improved by ${reportData.positionChange} position(s)`
                   : `Dropped by ${Math.abs(reportData.positionChange)} position(s)`
-                : "Consistent performance"}
+                : "Position data not available"}
             </p>
           </div>
 
@@ -363,7 +342,7 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
               {attendancePercentage}%
             </div>
             <p style={{ margin: "0", fontSize: "14px", color: "#f57c00" }}>
-              Present: {attendance.present} | Absent: {attendance.absent} | Late: {attendance.late}
+              Present: {attendance.present || 0} | Absent: {attendance.absent || 0} | Late: {attendance.late || 0}
             </p>
           </div>
         </div>
@@ -404,7 +383,7 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
                 lineHeight: "1.5",
               }}
             >
-              {comments.classTeacher}
+              {comments.classTeacher || "No comments provided by the class teacher."}
             </p>
           </div>
 
@@ -421,7 +400,7 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
                 lineHeight: "1.5",
               }}
             >
-              {comments.headTeacher}
+              {comments.headTeacher || "No comments provided by the head teacher."}
             </p>
           </div>
         </div>
@@ -473,7 +452,7 @@ export const ReportEmailTemplate: React.FC<ReportEmailTemplateProps> = ({ report
                     color: "#555",
                   }}
                 >
-                  {senderName}
+                  {senderName || "School Administrator"}
                 </div>
                 <p style={{ margin: "0", fontSize: "13px", color: "#666" }}>School Administrator</p>
               </div>
