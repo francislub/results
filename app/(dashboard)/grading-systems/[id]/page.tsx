@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { HomeIcon, PencilIcon } from "lucide-react"
-import prisma from "@/lib/prisma"
+import {prisma} from "@/lib/prisma"
 import { formatDate } from "@/lib/utils"
 
 export const metadata: Metadata = {

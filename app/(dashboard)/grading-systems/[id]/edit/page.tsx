@@ -12,14 +12,20 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { HomeIcon } from "lucide-react"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 
 export const metadata: Metadata = {
   title: "Edit Grading System | School Results Management",
   description: "Edit an existing grading system",
 }
 
-export default async function EditGradingSystemPage({ params }: { params: { id: string } }) {
+interface EditGradingSystemPageProps {
+  params: {
+    id: string
+  }
+}
+
+export default async function EditGradingSystemPage({ params }: EditGradingSystemPageProps) {
   const session = await getServerSession(authOptions)
 
   if (!session) {
@@ -31,11 +37,16 @@ export default async function EditGradingSystemPage({ params }: { params: { id: 
     redirect("/dashboard")
   }
 
-  const gradingSystem = await prisma.gradingSystem.findUnique({
-    where: {
-      id: params.id,
-    },
-  })
+  let gradingSystem = null
+  try {
+    gradingSystem = await prisma.gradingSystem.findUnique({
+      where: {
+        id: params.id,
+      },
+    })
+  } catch (error) {
+    console.error("Error fetching grading system:", error)
+  }
 
   if (!gradingSystem) {
     notFound()
