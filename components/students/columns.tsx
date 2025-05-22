@@ -65,18 +65,18 @@ export const columns: ColumnDef<Student>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            {/* <DropdownMenuItem asChild>
               <Link href={`/students/${student.id}`}>
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
+            </DropdownMenuItem> */}
+            {/* <DropdownMenuItem asChild>
               <Link href={`/students/${student.id}/edit`}>
                 <FileEdit className="mr-2 h-4 w-4" />
                 Edit
               </Link>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuItem className="text-destructive">
               <Trash className="mr-2 h-4 w-4" />
               Delete

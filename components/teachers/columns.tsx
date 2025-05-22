@@ -70,18 +70,18 @@ export const columns: ColumnDef<Teacher>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            {/* <DropdownMenuItem asChild>
               <Link href={`/teachers/${teacher.id}`}>
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
+            </DropdownMenuItem> */}
+            {/* <DropdownMenuItem asChild>
               <Link href={`/teachers/${teacher.id}/edit`}>
                 <FileEdit className="mr-2 h-4 w-4" />
                 Edit
               </Link>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuItem className="text-destructive">
               <Trash className="mr-2 h-4 w-4" />
               Delete
