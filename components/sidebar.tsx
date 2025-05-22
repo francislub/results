@@ -20,6 +20,7 @@ import {
   CalendarDays,
   Award,
   ClipboardList,
+  Layers,
 } from "lucide-react"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -59,6 +60,11 @@ export function Sidebar({ className }: SidebarProps) {
       icon: CalendarDays,
       href: "/exams",
       label: "Exams",
+    },
+    {
+      icon: CalendarDays,
+      href: "/grading-systems",
+      label: "Grading Systems",
     },
     {
       icon: BarChart3,
